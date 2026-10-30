@@ -1,0 +1,27 @@
+{
+  "$id": "vibe-code-session",
+  "description": "Enforced field set, the mode and protected_paths_check enums, and the permitted action vocabulary for the portable vibe-code session contract. Single source read by scripts/validate_vibe_code_session.py; the prose vibe-code-session.schema.md describes intent and rules and does not restate these lists. Procedural rules (mode/action compatibility, authorized-write path requirement, per-phase and per-receipt evidence, the open-question gate, the reproduction rule for a defect fix) stay in the validator.",
+  "record": {
+    "required": ["mode", "target", "scope", "phases"],
+    "enums": {
+      "mode": ["PLAN_ONLY", "CANDIDATE_ONLY", "AUTHORIZED_WRITE"],
+      "protected_paths_check": ["PASS", "FAIL", "UNVERIFIABLE"],
+      "phase_status": ["PASS", "FAIL", "CANDIDATE", "UNVERIFIABLE", "BLOCKED"],
+      "receipt_status": ["PASS", "FAIL", "NOT_ATTEMPTED", "UNVERIFIABLE"],
+      "review_status": ["PENDING", "REVIEWED", "CHANGES_REQUESTED", "UNVERIFIABLE"],
+      "open_question_status": ["OPEN", "ANSWERED", "ASSUMED"],
+      "task_kind": ["CHANGE", "DEFECT"],
+      "reproduction_outcome": ["FIXED", "PARTIAL", "NOT_FIXED", "NOT_RUN"],
+      "symptom_status": ["OBSERVED", "REPORTED"],
+      "cause_status": ["DERIVED", "INFERRED", "HYPOTHETICAL"]
+    },
+    "lists": {
+      "actions": ["read", "edit", "test", "commit", "push", "merge", "deploy"],
+      "blocked_actions": ["merge", "deploy"],
+      "write_actions": ["edit", "commit", "push"],
+      "default_branches": ["main", "master", "trunk", "default"],
+      "gated_phases": ["implement"],
+      "gated_phase_statuses": ["PASS", "CANDIDATE"]
+    }
+  }
+}
