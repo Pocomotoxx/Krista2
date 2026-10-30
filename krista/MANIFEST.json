@@ -1,0 +1,10 @@
+{
+ "source_commit": "f7bf9436ee39c246fad367123691140df9f07773",
+ "files": {
+  "scripts/schema_loader.py": "8001744702e95987498112498b8a19ccf160593b40c17f1fa99796bb99107f45",
+  "scripts/strict_fields.py": "f022251f18090c8a0eafa590a507473874a83101cdfbe69326920aebdedf2b42",
+  "scripts/test_plan_guard.py": "80e6cd2434627a971998b657b82ac9851edbf154cc160099a67bf3feca8c675e",
+  "scripts/validate_vibe_code_session.py": "08be0f044fd0bb59b5066cc9562a23520068c7fa86f6383163031ab9698c8056",
+  "runtime/schemas/vibe-code-session.schema.json": "1f11ebe04fef1c1d134ac249bd33f0c80dc8d32766e498177ea37d8c5ba47eed"
+ }
+}

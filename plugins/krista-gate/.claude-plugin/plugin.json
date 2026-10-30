@@ -1,0 +1,5 @@
+{
+  "name": "krista-gate",
+  "version": "0.1.0",
+  "description": "KRISTA gate: a fail-closed PreToolUse hook that enforces the vibe-code session record (allowed and forbidden paths, actions, blocking open questions, branch) at the tool boundary."
+}
