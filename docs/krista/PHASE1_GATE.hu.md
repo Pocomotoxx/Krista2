@@ -53,8 +53,8 @@ Ezzel a leltár két kritikus rése (B-01 MCP-shell, B-02 önmódosítás bypass
 ## Korlátok (kimondva)
 
 - **Betöltés:** ha a bővítmény nincs betöltve, nincs kapu. A Ruflo munkásprofilja hiányzó bővítménynél csak figyelmeztet, és a
-  `RUFLO_HEADLESS_PLUGINS=none` kikapcsol mindent (B-06). **Ennek lezárása a következő lépés:** kezelt/felhasználói szintű
-  regisztráció és a munkásindítás tiltása a bővítmény nélkül. Ez a fázis még nem köti be a Ruflo munkásprofiljába.
+  `RUFLO_HEADLESS_PLUGINS=none` kikapcsol mindent (B-06). **Ennek lezárása a `claude/worker-profile` ágon
+  készült el:** kötelező bővítmény a Ruflo munkásainál és gépszintű házirend, lásd `docs/krista/WORKER_PROFILE.hu.md`.
 - **A rekord bizalmi bemenet.** A kapu a szerkezetét ellenőrzi, nem az igazságát. Az `AUTHORIZED_WRITE` emberi jóváhagyása a rekordon kívül
   van; a kapu a két írási módot egyformán kezeli.
 - **A deklarált parancs** szó szerint fut, és azt tehet, amit a szerzője beleírt.

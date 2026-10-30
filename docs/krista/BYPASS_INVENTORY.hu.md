@@ -115,6 +115,7 @@ részfolyamat a Ruflo mai hookjain, hogy a KRISTA-bővítmény ezekre építhess
 - **Kezelés:** a KRISTA-bővítmény kerüljön a munkásprofilba; a hiányzását a munkásindítás előtt kelljen
   ellenőrizni (tiltás, nem figyelmeztetés); a `none` érték legyen tiltott; a jogosultságot kihagyó
   kapcsoló tiltott.
+- **Lezárva** a `claude/worker-profile` ágon (két réteg, mérve): `docs/krista/WORKER_PROFILE.hu.md`.
 
 ### B-07 Háttérautonómia (közepes) [kód]
 - `daemon-manager.sh:70,92`: `nohup` démonok. `auto-commit.sh:71,84,98,140`: `git add -A`, `commit`,

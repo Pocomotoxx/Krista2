@@ -309,8 +309,10 @@ async function spawnClaudeCodeInstance(
       // path keeps loading plugins the normal, trusted way.
       let spawnEnv: NodeJS.ProcessEnv | undefined;
       let missingPlugins: string[] = [];
-      if (isNonInteractive) {
-        const staged = withHeadlessPlugins(claudeArgs, { ...process.env }, { projectRoot: process.cwd() });
+      // The required KRISTA gate plugin is added in both modes; an interactive session keeps its own
+      // plugin profile (requiredOnly). A missing gate throws RequiredPluginError: nothing is spawned.
+      {
+        const staged = withHeadlessPlugins(claudeArgs, { ...process.env }, { projectRoot: process.cwd(), requiredOnly: !isNonInteractive });
         claudeArgs.splice(0, claudeArgs.length, ...staged.argv);
         spawnEnv = staged.env;
         missingPlugins = staged.missing;
