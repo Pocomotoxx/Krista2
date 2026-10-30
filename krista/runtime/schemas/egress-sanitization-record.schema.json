@@ -1,0 +1,39 @@
+{
+  "$id": "egress-sanitization-record",
+  "description": "Enforced field set and enums for the declarative egress/PII sanitization gate record. Single source read by scripts/validate_egress_sanitization.py; the prose egress-sanitization-record.schema.md documents intent and rules and does not restate these lists. Procedural rules (PASSED forbids any BLOCKED unit; BLOCKED requires a BLOCKED unit and keeps the output incomplete; SANITIZED/BLOCKED/EXCLUDED units require a rule_locator; ALLOWED units carry no finding; NOT_ATTEMPTED/UNVERIFIABLE require a limitation and empty units; finding_kind is a category label, never the sensitive value) stay in the validator. assurance_level is DECLARED or UNVERIFIABLE, never VERIFIED: a self-describing record cannot verify itself. Adapts, at concept level only, the external m1guel1982/mova-context egress audit's per-unit decision model; no code or text was copied.",
+  "record": {
+    "required": [
+      "record_type",
+      "execution_id",
+      "target_ref",
+      "scope",
+      "gate_status",
+      "units",
+      "assurance_level",
+      "limitation"
+    ],
+    "enums": {
+      "scope": ["OUTPUT_ARTIFACT", "DELIVERABLE_TEXT", "DOMAIN_SENSITIVE"],
+      "gate_status": ["PASSED", "BLOCKED", "NOT_ATTEMPTED", "UNVERIFIABLE"],
+      "assurance_level": ["DECLARED", "UNVERIFIABLE"]
+    },
+    "lists": {
+      "no_units": ["NOT_ATTEMPTED", "UNVERIFIABLE"]
+    }
+  },
+  "unit": {
+    "required": [
+      "unit_ref",
+      "decision",
+      "count"
+    ],
+    "enums": {
+      "decision": ["ALLOWED", "SANITIZED", "BLOCKED", "EXCLUDED"]
+    },
+    "lists": {
+      "finding_decisions": ["SANITIZED", "BLOCKED"],
+      "rule_required": ["SANITIZED", "BLOCKED", "EXCLUDED"],
+      "secret_categories": ["credential", "secret_assignment"]
+    }
+  }
+}

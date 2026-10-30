@@ -1,9 +1,31 @@
 {
-  "description": "KRISTA PreToolUse gate (phase 1): path, action and open-question checks at the tool boundary. Fail-closed: any failure of the gate itself blocks the call.",
+  "description": "KRISTA gate (phases 1-2): path, action and open-question checks, ingress and egress filters and a local ledger at the tool, prompt and stop boundaries. Fail-closed: any failure of the gate itself blocks.",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Bash|Write|Edit|MultiEdit|NotebookEdit|WebFetch|WebSearch|mcp__.*",
+        "matcher": "Bash|Read|NotebookRead|Write|Edit|MultiEdit|NotebookEdit|WebFetch|WebSearch|mcp__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'timeout 5 \"$@\"; [ $? -eq 0 ] || exit 2' _ python3 -I \"${CLAUDE_PLUGIN_ROOT}/bin/krista_gate.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/bin/sh -c 'timeout 5 \"$@\"; [ $? -eq 0 ] || exit 2' _ python3 -I \"${CLAUDE_PLUGIN_ROOT}/bin/krista_gate.py\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
         "hooks": [
           {
             "type": "command",

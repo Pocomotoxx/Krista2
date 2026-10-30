@@ -92,6 +92,10 @@ class ManagedPolicy(unittest.TestCase):
             "no PreToolUse hook runs the gate": lambda p: p["hooks"].update(PreToolUse=[]),
             "does not cover Write": lambda p: p["hooks"]["PreToolUse"][0].update(matcher="Bash|mcp__.*|Edit|MultiEdit|NotebookEdit|WebFetch|WebSearch"),
             "does not cover mcp__": lambda p: p["hooks"]["PreToolUse"][0].update(matcher="Bash|Write|Edit|MultiEdit|NotebookEdit|WebFetch|WebSearch"),
+            "does not cover Read": lambda p: p["hooks"]["PreToolUse"][0].update(matcher="Bash|Write|Edit|MultiEdit|NotebookEdit|WebFetch|WebSearch|mcp__.*"),
+            "no UserPromptSubmit hook": lambda p: p["hooks"].pop("UserPromptSubmit"),
+            "no Stop hook": lambda p: p["hooks"].update(Stop=[]),
+            "no Stop hook runs the gate (wrapper)": lambda p: p["hooks"]["Stop"][0]["hooks"][0].update(command="python3 -I " + str(managed.gate_script(self.root))),
             "disableBypassPermissionsMode": lambda p: p["permissions"].pop("disableBypassPermissionsMode"),
             "allowManagedHooksOnly": lambda p: p.pop("allowManagedHooksOnly"),
             "no PreToolUse hook runs the gate (wrapper)": lambda p: p["hooks"]["PreToolUse"][0]["hooks"][0].update(command="python3 -I " + str(managed.gate_script(self.root))),
@@ -100,6 +104,15 @@ class ManagedPolicy(unittest.TestCase):
         for reason, change in cases.items():
             problems = tamper(change)
             self.assertTrue(any(reason.split(" (")[0] in p for p in problems), (reason, problems))
+
+    def test_the_rendered_policy_wires_all_three_events_to_the_same_wrapped_gate(self):
+        hooks = managed.render(self.root)["hooks"]
+        self.assertEqual(set(hooks), {"PreToolUse", "UserPromptSubmit", "Stop"})
+        commands = {e: hooks[e][0]["hooks"][0]["command"] for e in hooks}
+        self.assertEqual(len(set(commands.values())), 1)
+        plugin = json.loads((PLUGIN / "hooks" / "hooks.json").read_text())["hooks"]
+        self.assertEqual(set(plugin), set(hooks))
+        self.assertEqual(plugin["PreToolUse"][0]["matcher"], hooks["PreToolUse"][0]["matcher"])
 
     def test_check_reports_a_changed_pin_next_to_the_gate(self):
         self.install()

@@ -1,0 +1,58 @@
+{
+  "$id": "ingress-sanitization-record",
+  "description": "Enforced field set and enums for the declarative ingress (pre-model) data-minimisation gate record. Single source read by scripts/validate_ingress_sanitization.py; the prose ingress-sanitization-record.schema.md documents intent and rules and does not restate these lists. Procedural rules (ADMITTED forbids WITHHELD units and any residual finding; WITHHELD requires a WITHHELD unit; TRANSFORMED units name a technique, a finding category, a count and a rule; the record technique list equals the techniques of its TRANSFORMED units; PSEUDONYMIZATION units state where the mapping is held but never carry it; DELEGATED_AGENT needs a delegation_ref; a SECRETS_ONLY detector needs a real limitation; NOT_ATTEMPTED/UNVERIFIABLE carry no units; no value, mapping or secret-shaped string anywhere) stay in the validator. assurance_level is DECLARED or UNVERIFIABLE, never VERIFIED: a self-describing record cannot verify itself.",
+  "record": {
+    "required": [
+      "record_type",
+      "execution_id",
+      "context_ref",
+      "destination_class",
+      "detector_ref",
+      "detection_coverage",
+      "gate_status",
+      "techniques",
+      "units",
+      "assurance_level",
+      "limitation"
+    ],
+    "enums": {
+      "destination_class": ["INTERNAL_MODEL", "EXTERNAL_MODEL", "DELEGATED_AGENT"],
+      "detection_coverage": ["SECRETS_ONLY", "SECRETS_AND_PII_PATTERNS", "HOST_DECLARED"],
+      "gate_status": ["ADMITTED", "WITHHELD", "NOT_ATTEMPTED", "UNVERIFIABLE"],
+      "technique": ["MASKING", "PSEUDONYMIZATION", "AGGREGATION", "GENERALIZATION", "MINIMIZATION", "SYNTHETIC_SUBSTITUTION"],
+      "assurance_level": ["DECLARED", "UNVERIFIABLE"],
+      "token_check_status": ["CONSISTENT", "INCONSISTENT", "NOT_CHECKED"]
+    },
+    "lists": {
+      "no_units": ["NOT_ATTEMPTED", "UNVERIFIABLE"],
+      "forbidden_fields": [
+        "original", "original_value", "raw", "raw_value", "value", "plaintext", "text",
+        "content", "prompt", "mapping", "token_map", "token_table", "vault", "lookup"
+      ]
+    }
+  },
+  "unit": {
+    "required": [
+      "unit_ref",
+      "decision",
+      "finding_kind",
+      "count",
+      "residual_findings"
+    ],
+    "enums": {
+      "decision": ["ADMITTED_AS_IS", "TRANSFORMED", "WITHHELD", "EXCLUDED"],
+      "mapping_custody": ["HOST_VAULT", "DISCARDED"]
+    },
+    "lists": {
+      "rule_required": ["TRANSFORMED", "WITHHELD", "EXCLUDED"],
+      "secret_categories": ["credential", "secret_assignment"]
+    }
+  },
+  "token_check": {
+    "required": [
+      "status",
+      "unknown_tokens",
+      "missing_tokens"
+    ]
+  }
+}

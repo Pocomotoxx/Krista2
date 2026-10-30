@@ -43,7 +43,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import pin  # noqa: E402
 
 PROFILES = ("strict", "coexist")
-REQUIRED_TOOLS = ("Bash", "Write", "Edit", "MultiEdit", "NotebookEdit", "WebFetch", "WebSearch", "mcp__")
+EVENTS = ("PreToolUse", "UserPromptSubmit", "Stop")
+REQUIRED_TOOLS = ("Bash", "Read", "Write", "Edit", "MultiEdit", "NotebookEdit", "WebFetch", "WebSearch", "mcp__")
 WRAPPER = "/bin/sh -c 'timeout 5 \"$@\"; [ $? -eq 0 ] || exit 2' _ python3 -I"
 
 
@@ -61,8 +62,9 @@ def render(gate_root: Path, profile: str = "strict") -> dict:
     if profile not in PROFILES:
         raise ValueError(f"profile must be one of {PROFILES}")
     gate_root = gate_root.resolve()
+    hook = {"type": "command", "command": f"{WRAPPER} {gate_script(gate_root)}", "timeout": 10}
     policy: dict = {
-        "hooks": {"PreToolUse": [{"matcher": matcher(), "hooks": [{"type": "command", "command": f"{WRAPPER} {gate_script(gate_root)}", "timeout": 10}]}]},
+        "hooks": {"PreToolUse": [{"matcher": matcher(), "hooks": [hook]}], "UserPromptSubmit": [{"hooks": [dict(hook)]}], "Stop": [{"hooks": [dict(hook)]}]},
         "permissions": {"disableBypassPermissionsMode": "disable"},
     }
     if profile == "strict":
@@ -79,9 +81,14 @@ def check(path: Path, profile: str = "strict") -> list[str]:
     if not isinstance(policy, dict):
         return ["policy is not a JSON object"]
     problems = []
-    entries = [e for e in (policy.get("hooks") or {}).get("PreToolUse", []) if isinstance(e, dict)] if isinstance(policy.get("hooks"), dict) else []
-    commands = [h.get("command", "") for e in entries for h in e.get("hooks", []) if isinstance(h, dict)]
-    gate_commands = [c for c in commands if isinstance(c, str) and c.startswith(WRAPPER + " ") and c.endswith("krista_gate.py")]
+    hooks = policy.get("hooks") if isinstance(policy.get("hooks"), dict) else {}
+
+    def gate_entries(event: str) -> tuple[list[dict], list[str]]:
+        entries = [e for e in hooks.get(event, []) if isinstance(e, dict)] if isinstance(hooks.get(event), list) else []
+        commands = [h.get("command", "") for e in entries for h in e.get("hooks", []) if isinstance(h, dict)]
+        return entries, [c for c in commands if isinstance(c, str) and c.startswith(WRAPPER + " ") and c.endswith("krista_gate.py")]
+
+    entries, gate_commands = gate_entries("PreToolUse")
     if not gate_commands:
         problems.append("no PreToolUse hook runs the gate through the fail-closed wrapper")
     else:
@@ -98,6 +105,9 @@ def check(path: Path, profile: str = "strict") -> list[str]:
     for tool in REQUIRED_TOOLS:
         if not any(tool in m for m in covering):
             problems.append(f"the gate matcher does not cover {tool}")
+    for event in EVENTS[1:]:
+        if not gate_entries(event)[1]:
+            problems.append(f"no {event} hook runs the gate through the fail-closed wrapper")
     permissions = policy.get("permissions") if isinstance(policy.get("permissions"), dict) else {}
     if permissions.get("disableBypassPermissionsMode") != "disable":
         problems.append("permissions.disableBypassPermissionsMode is not \"disable\"")

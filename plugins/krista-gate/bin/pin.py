@@ -23,8 +23,20 @@ FILES = (
     "scripts/schema_loader.py",
     "scripts/strict_fields.py",
     "scripts/test_plan_guard.py",
+    "scripts/redaction.py",
+    "scripts/repo_scan.py",
+    "scripts/ledger_keys.py",
+    "scripts/runtime_ledger.py",
     "scripts/validate_vibe_code_session.py",
+    "scripts/validate_decision_protocol.py",
+    "scripts/validate_decision_assessment.py",
+    "scripts/validate_ingress_sanitization.py",
+    "scripts/validate_egress_sanitization.py",
     "runtime/schemas/vibe-code-session.schema.json",
+    "runtime/schemas/decision-protocol-event.schema.json",
+    "runtime/schemas/decision-assessment-event.schema.json",
+    "runtime/schemas/ingress-sanitization-record.schema.json",
+    "runtime/schemas/egress-sanitization-record.schema.json",
 )
 
 
