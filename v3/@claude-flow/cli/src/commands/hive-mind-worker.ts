@@ -129,11 +129,18 @@ export const runWithClaude: TaskRunner = (prompt, opts) =>
     // The prompt goes on stdin, not argv: a task description has no length
     // bound and `--mcp-config` is variadic (#1780).
     // ADR-510: pass the worker profile's plugins (default ruflo-mods) as --plugin-dir.
-    const staged = withHeadlessPlugins(
-      [...launch.argsPrefix, '-p', '--output-format', 'json', `--mcp-config=${opts.mcpConfig}`],
-      { ...process.env },
-      { projectRoot: opts.cwd },
-    );
+    let staged: ReturnType<typeof withHeadlessPlugins<NodeJS.ProcessEnv>>;
+    try {
+      staged = withHeadlessPlugins(
+        [...launch.argsPrefix, '-p', '--output-format', 'json', `--mcp-config=${opts.mcpConfig}`],
+        { ...process.env },
+        { projectRoot: opts.cwd },
+      );
+    } catch (e) {
+      // A worker without the required KRISTA gate is not started.
+      resolve({ ok: false, output: e instanceof Error ? e.message : String(e), exitCode: null, durationMs: 0 });
+      return;
+    }
     const missing = staged.missing.length > 0 ? { missingPlugins: staged.missing } : {};
     const child = childSpawn(launch.command, staged.argv, { cwd: opts.cwd, env: staged.env, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '';

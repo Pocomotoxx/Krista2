@@ -192,6 +192,13 @@ This is attempt ${attempt} of ${ARGS.maxAttempts}. Be focused and efficient — 
       '--permission-mode', 'acceptEdits',  // auto-accept edits within the allowed set
     ];
 
+    // KRISTA gate: this worker can edit and run Bash, so it never starts without the required plugin.
+    const gateDir = process.env.KRISTA_GATE_PLUGIN_DIR;
+    if (!gateDir || !existsSync(resolve(gateDir, '.claude-plugin', 'plugin.json'))) {
+      throw new Error('KRISTA_GATE_PLUGIN_DIR does not name the krista-gate plugin: refusing to start an unguarded worker');
+    }
+    argv.push('--plugin-dir', gateDir);
+
     const p = spawn('claude', argv, {
       cwd: repoPath,
       stdio: ['ignore', 'pipe', 'pipe'],

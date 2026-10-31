@@ -1418,7 +1418,14 @@ Analyze the above codebase context and provide your response following the forma
       // ADR-510: `claude -p` on a fresh config loads no marketplace plugins, so
       // pass the worker profile (default ruflo-mods) as --plugin-dir and turn
       // function hooks on unless the caller set CLAUDE_CODE_ENABLE_FUNCTION_HOOKS.
-      const staged = withHeadlessPlugins(['--print', '--output-format', 'json'], env, { projectRoot: this.projectRoot });
+      let staged: ReturnType<typeof withHeadlessPlugins<Record<string, string>>>;
+      try {
+        staged = withHeadlessPlugins(['--print', '--output-format', 'json'], env, { projectRoot: this.projectRoot });
+      } catch (e) {
+        // A worker without the required KRISTA gate is not started.
+        resolve({ success: false, output: '', error: e instanceof Error ? e.message : String(e) });
+        return;
+      }
       missingPlugins = staged.missing;
       const child = spawn('claude', staged.argv, {
         cwd: this.projectRoot,

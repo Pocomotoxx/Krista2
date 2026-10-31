@@ -14,16 +14,65 @@
  *
  * Profile override: `RUFLO_HEADLESS_PLUGINS` is a comma list of plugin names;
  * `none` (or an empty value) turns plugin loading off.
+ *
+ * Required plugin (KRISTA gate): the profile above is advisory, the required
+ * plugin is not. `KRISTA_GATE_PLUGIN_DIR` names the folder of the `krista-gate`
+ * plugin, set by whoever launches ruflo (never read from the project). Every
+ * worker gets it as `--plugin-dir`, whatever the profile says, `none` included.
+ * If the variable is unset, or the folder is not that plugin, the call throws
+ * `RequiredPluginError` and no worker is started: a missing guard stops the worker
+ * instead of being logged and skipped.
  */
 
-import { realpathSync } from 'node:fs';
-import { basename, resolve } from 'node:path';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { basename, delimiter, isAbsolute, join, resolve } from 'node:path';
 
 import { ENABLE_ENV } from './install.js';
 import { resolvePluginPaths, type ResolveOptions, type PluginPaths } from './plugin-paths.js';
 
 export const DEFAULT_WORKER_PLUGINS: readonly string[] = ['ruflo-mods'];
 export const PROFILE_ENV = 'RUFLO_HEADLESS_PLUGINS';
+export const REQUIRED_PLUGIN_DIR_ENV = 'KRISTA_GATE_PLUGIN_DIR';
+export const REQUIRED_PLUGIN_NAME = 'krista-gate';
+
+/** Thrown, before any process is started, when the required plugin cannot be located. */
+export class RequiredPluginError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RequiredPluginError';
+  }
+}
+
+/**
+ * The folders every worker must load. Throws `RequiredPluginError` when the launcher did not name
+ * the plugin, or the folder is not the `krista-gate` plugin with its hook file.
+ */
+export function requiredPluginDirs(env: NodeJS.ProcessEnv = process.env): string[] {
+  const raw = (env[REQUIRED_PLUGIN_DIR_ENV] ?? '').trim();
+  if (raw === '') {
+    throw new RequiredPluginError(`${REQUIRED_PLUGIN_DIR_ENV} is not set: refusing to start a worker without the ${REQUIRED_PLUGIN_NAME} plugin`);
+  }
+  return raw.split(delimiter).filter(Boolean).map((entry) => {
+    // A relative path would resolve against whatever directory the worker starts in.
+    if (!isAbsolute(entry)) {
+      throw new RequiredPluginError(`${REQUIRED_PLUGIN_DIR_ENV} must hold absolute paths (got ${entry}): refusing to start a worker`);
+    }
+    const dir = resolve(entry);
+    let name: unknown;
+    try {
+      name = (JSON.parse(readFileSync(join(dir, '.claude-plugin', 'plugin.json'), 'utf8')) as { name?: unknown }).name;
+    } catch {
+      throw new RequiredPluginError(`${dir} has no readable .claude-plugin/plugin.json: refusing to start a worker`);
+    }
+    if (name !== REQUIRED_PLUGIN_NAME) {
+      throw new RequiredPluginError(`${dir} is not the ${REQUIRED_PLUGIN_NAME} plugin: refusing to start a worker`);
+    }
+    if (!existsSync(join(dir, 'hooks', 'hooks.json'))) {
+      throw new RequiredPluginError(`${dir} has no hooks/hooks.json: refusing to start a worker`);
+    }
+    return dir;
+  });
+}
 
 export interface HeadlessPluginOptions extends ResolveOptions {
   /** Plugin names to load; defaults to the env profile, else DEFAULT_WORKER_PLUGINS. */
@@ -32,6 +81,8 @@ export interface HeadlessPluginOptions extends ResolveOptions {
   warn?: (line: string) => void;
   /** Injectable resolver, for tests. */
   resolver?: (names: readonly string[], opts: ResolveOptions) => PluginPaths;
+  /** Add only the required plugin and leave the profile to the user's own settings (an interactive session). */
+  requiredOnly?: boolean;
 }
 
 export interface HeadlessPluginResult<E> {
@@ -41,6 +92,8 @@ export interface HeadlessPluginResult<E> {
   added: string[];
   /** Plugins in the profile that could not be resolved. */
   missing: string[];
+  /** Required plugin folders this call added (or found already present). */
+  required: string[];
 }
 
 const warned = new Set<string>();
@@ -83,10 +136,19 @@ export function withHeadlessPlugins<E extends Record<string, string | undefined>
   env: E,
   opts: HeadlessPluginOptions = {},
 ): HeadlessPluginResult<E> {
-  const profile = workerProfile(opts.env ?? (env as NodeJS.ProcessEnv), opts.profile);
+  // The required plugin is resolved first: if it cannot be found, nothing else happens.
+  const requiredDirs = requiredPluginDirs(opts.env ?? (env as NodeJS.ProcessEnv));
+  const profile = opts.requiredOnly ? [] : workerProfile(opts.env ?? (env as NodeJS.ProcessEnv), opts.profile);
   const outArgv = [...argv];
   const outEnv = { ...env } as E;
-  if (profile.length === 0) return { argv: outArgv, env: outEnv, added: [], missing: [] };
+  const addRequired = (): string[] => {
+    const present = new Set(existingPluginDirs(outArgv).map(canonical));
+    for (const dir of requiredDirs) {
+      if (!present.has(canonical(dir))) outArgv.push('--plugin-dir', dir);
+    }
+    return requiredDirs;
+  };
+  if (profile.length === 0) return { argv: outArgv, env: outEnv, added: [], missing: [], required: addRequired() };
 
   const resolver = opts.resolver ?? resolvePluginPaths;
   const { resolved, missing } = resolver(profile, { ...opts, env: opts.env ?? (env as NodeJS.ProcessEnv) });
@@ -113,5 +175,5 @@ export function withHeadlessPlugins<E extends Record<string, string | undefined>
     warned.add(name);
     warn(`plugin ${name} not found; worker runs without it`);
   }
-  return { argv: outArgv, env: outEnv, added, missing: stillMissing };
+  return { argv: outArgv, env: outEnv, added, missing: stillMissing, required: addRequired() };
 }
