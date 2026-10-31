@@ -1,0 +1,75 @@
+{
+  "$id": "decision-assessment-event",
+  "description": "Enforced field sets per decision point, enums, point/actor mapping and forbidden raw-content fields for an append-only decision-assessment event stream. Single source read by scripts/validate_decision_assessment.py; the prose decision-assessment-event.schema.md describes intent and rules and does not restate these lists. Procedural rules (point order, criteria frozen after the decision, citation and retrieval rules per claim status, the recommendation ceiling, the countercheck count, the human-decision gate, the regulated-domain framing-only rule, stale-recommendation check) stay in the validator. assurance_level is DECLARED or UNVERIFIABLE, never VERIFIED.",
+  "event": {
+    "required": [
+      "record_type", "event_id", "assessment_id", "point", "actor_kind",
+      "log_status", "assurance_level", "explanation"
+    ],
+    "enums": {
+      "point": ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"],
+      "actor_kind": ["MODEL", "HUMAN"],
+      "log_status": ["LOGGED_LOCAL", "NOT_LOGGED_NO_LEDGER"],
+      "assurance_level": ["DECLARED", "UNVERIFIABLE"],
+      "stakes": ["LOW", "MEDIUM", "HIGH"],
+      "reversibility": ["REVERSIBLE", "PARTLY_REVERSIBLE", "IRREVERSIBLE"],
+      "data_class": ["PUBLIC", "INTERNAL", "PERSONAL", "SENSITIVE"],
+      "domain_route": ["NONE", "LEGAL", "HR", "MEDICAL", "FINANCIAL", "OTHER_REGULATED"],
+      "subject_kind": ["GENERAL", "KRISTA_CHANGE"],
+      "claim_status": ["OBSERVED", "DERIVED", "INFERRED", "HYPOTHETICAL"],
+      "direction": ["FOR", "AGAINST"],
+      "retrieval": ["RETRIEVED_THIS_SESSION", "USER_SUPPLIED", "MODEL_RECALL"],
+      "countercheck": ["SUFFICIENT", "INSUFFICIENT"],
+      "recommendation": ["RECOMMEND_ACCEPT", "RECOMMEND_REJECT", "RECOMMEND_REVISE", "RECOMMEND_HOLD"],
+      "criterion_result": ["MET", "NOT_MET", "UNKNOWN"],
+      "downgrade_reason": ["EVIDENCE_WEAK", "COUNTEREVIDENCE_MISSING", "KEY_CLAIM_HYPOTHETICAL", "CRITERIA_UNKNOWN"],
+      "decision": ["GO", "NO_GO", "PARK", "REVISE"],
+      "handoff": ["NONE", "RFC", "VIBE_CODE"],
+      "outcome_review": ["MATCHED_EXPECTATION", "PARTLY_MATCHED", "DID_NOT_MATCH", "NOT_YET_OBSERVABLE"],
+      "criteria_change_reason": ["CRITERION_WRONG", "SCOPE_CHANGED", "NEW_CONSTRAINT"]
+    },
+    "mappings": {
+      "required_by_point": {
+        "D1": ["decision_owner_ref", "stakes", "reversibility", "data_class", "domain_route", "subject_kind", "human_ref"],
+        "D2": ["criteria_refs", "human_ref"],
+        "D3": ["claim_ref", "claim_status", "direction", "key_claim", "source_refs"],
+        "D4": ["countercheck", "against_found", "search_scope_ref"],
+        "D5": ["option_refs", "includes_no_action", "human_ref"],
+        "D6": ["recommendation", "criteria_results"],
+        "D7": ["decision", "human_ref", "departs_from_recommendation", "handoff"],
+        "D8": ["outcome_review", "review_ref", "human_ref"]
+      },
+      "allowed_actors": {
+        "D1": ["HUMAN"],
+        "D2": ["HUMAN"],
+        "D3": ["MODEL", "HUMAN"],
+        "D4": ["MODEL", "HUMAN"],
+        "D5": ["HUMAN"],
+        "D6": ["MODEL"],
+        "D7": ["HUMAN"],
+        "D8": ["HUMAN"]
+      },
+      "recommendation_for_decision": {
+        "GO": "RECOMMEND_ACCEPT",
+        "NO_GO": "RECOMMEND_REJECT",
+        "PARK": "RECOMMEND_HOLD",
+        "REVISE": "RECOMMEND_REVISE"
+      }
+    },
+    "lists": {
+      "explanation_sections": [
+        "DECISION_AND_DECIDER", "EVIDENCE_AND_LEVEL", "COUNTEREVIDENCE", "OPTIONS",
+        "UNVERIFIABLE_ITEMS", "GATE_RESULT", "NEXT_HUMAN_STEP"
+      ],
+      "regulated_routes": ["LEGAL", "HR", "MEDICAL", "FINANCIAL", "OTHER_REGULATED"],
+      "sanitized_classes": ["PERSONAL", "SENSITIVE"],
+      "weak_statuses": ["INFERRED", "HYPOTHETICAL"],
+      "frozen_after_decision": ["D1", "D2", "D3", "D4", "D5", "D6"],
+      "forbidden_fields": [
+        "text", "content", "prompt", "response", "summary", "description", "raw_text", "document",
+        "rationale", "reasoning", "explanation_text", "question", "answer", "note", "notes", "value", "mapping"
+      ],
+      "secret_categories": ["credential", "secret_assignment"]
+    }
+  }
+}

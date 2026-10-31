@@ -1,0 +1,27 @@
+{
+  "$id": "decision-protocol-event",
+  "description": "Enforced field set, enums, lifecycle transitions, and forbidden raw-content fields for an append-only RFC/Decision Protocol event. Single source read by scripts/validate_decision_protocol.py; the prose decision-protocol-event.schema.md describes intent and rules and does not restate these lists. Procedural checks (first event is DRAFT, cross-field requirements per state, reviewer independence) stay in the validator; only the declarative data lives here.",
+  "event": {
+    "required": [
+      "record_type", "event_id", "protocol_id", "state", "provenance_refs"
+    ],
+    "enums": {
+      "state": ["DRAFT", "PROPOSED", "ACCEPTED", "REJECTED", "IMPLEMENTED", "VERIFIED"],
+      "auditor_recommendation": ["RECOMMEND_ACCEPT", "RECOMMEND_REJECT", "RECOMMEND_HOLD", "RECOMMEND_REVISE"]
+    },
+    "mappings": {
+      "transitions": {
+        "DRAFT": ["PROPOSED"],
+        "PROPOSED": ["ACCEPTED", "REJECTED"],
+        "ACCEPTED": ["IMPLEMENTED"],
+        "IMPLEMENTED": ["VERIFIED"],
+        "REJECTED": [],
+        "VERIFIED": []
+      }
+    },
+    "lists": {
+      "pre_decision_states": ["DRAFT", "PROPOSED"],
+      "forbidden_fields": ["text", "content", "prompt", "response", "summary", "description", "raw_text", "document"]
+    }
+  }
+}

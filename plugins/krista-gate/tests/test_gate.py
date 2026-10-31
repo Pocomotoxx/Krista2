@@ -373,8 +373,10 @@ class OtherTools(GateCase):
         self.assertDenied(self.run_gate("mcp__probe__terminal_execute", {}, env={"KRISTA_GATE_MCP_ALLOW": "mcp__docs__*,mcp__other__x"}), "G-MCP")
 
     def test_read_tools_pass_and_unknown_tools_are_denied(self):
-        for tool in ("Read", "Glob", "Grep", "LS"):
+        for tool in ("Glob", "Grep", "LS"):
             self.assertAllowed(self.run_gate(tool, {"file_path": ".env"}, record=None))
+        self.assertAllowed(self.run_gate("Read", {"file_path": "README.md"}, record=None))
+        self.assertDenied(self.run_gate("Read", {"file_path": ".env"}, record=None), "G-INGRESS")
         self.assertDenied(self.run_gate("SomethingNew", {}), "G-TOOL")
         self.assertDenied(gate.decide({"tool_input": {}}, {}, validator=VALIDATOR), "G-TOOL")
         self.assertDenied(gate.decide({"tool_name": ""}, {}, validator=VALIDATOR), "G-TOOL")
@@ -453,8 +455,7 @@ class CommandLine(unittest.TestCase):
     def test_a_tampered_pin_blocks_every_tool_through_the_command_line(self):
         shutil.copytree(pin.PIN_DIR, self.tmp / "krista")
         copy_root = self.tmp / "plugins" / "krista-gate" / "bin"
-        copy_root.mkdir(parents=True)
-        shutil.copy(GATE, copy_root / "krista_gate.py")
+        shutil.copytree(GATE.parent, copy_root, ignore=shutil.ignore_patterns("__pycache__"))
         (self.tmp / "krista" / "scripts" / "strict_fields.py").write_text("# tampered\n")
         result = self.call({"tool_name": "Read", "tool_input": {}}, command=[sys.executable, "-I", str(copy_root / "krista_gate.py")])
         self.assertEqual(result.returncode, 2)

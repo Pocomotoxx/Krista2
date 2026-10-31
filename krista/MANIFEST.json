@@ -4,7 +4,19 @@
   "scripts/schema_loader.py": "8001744702e95987498112498b8a19ccf160593b40c17f1fa99796bb99107f45",
   "scripts/strict_fields.py": "f022251f18090c8a0eafa590a507473874a83101cdfbe69326920aebdedf2b42",
   "scripts/test_plan_guard.py": "80e6cd2434627a971998b657b82ac9851edbf154cc160099a67bf3feca8c675e",
+  "scripts/redaction.py": "515260ed11751cb97b126e73678b6d98a3d7c39c1b9d23f9efb6036bdc4578bf",
+  "scripts/repo_scan.py": "0d33e620fbd6eca64d2176ef03c749aabfd208966677e04c87c45ce15fff9fbe",
+  "scripts/ledger_keys.py": "ee988c16ec87bb821c8e8829a469a56c498a9d6d04cd81da3174d6d50a56d86d",
+  "scripts/runtime_ledger.py": "7ddec14d7ed8f60803e1494636f1d200e34607d703ecb30cbc0556b06232ca05",
   "scripts/validate_vibe_code_session.py": "08be0f044fd0bb59b5066cc9562a23520068c7fa86f6383163031ab9698c8056",
-  "runtime/schemas/vibe-code-session.schema.json": "1f11ebe04fef1c1d134ac249bd33f0c80dc8d32766e498177ea37d8c5ba47eed"
+  "scripts/validate_decision_protocol.py": "e24bc5bc32c57d2fc58e438dd884516d8512970884de70abe95d5caa3354e0c4",
+  "scripts/validate_decision_assessment.py": "09b56f9808bb25a2165e3131fa9645475b165ef4dbf5fae68dca5e91eaede4c7",
+  "scripts/validate_ingress_sanitization.py": "b86892f85d70ee090b47569f7b71271b0f066bc8600c82ac2ea8b6835d540f26",
+  "scripts/validate_egress_sanitization.py": "f747b8a862d72e5d692863c3f499d99761e20114b2bd919ff22da60ed44e3dff",
+  "runtime/schemas/vibe-code-session.schema.json": "1f11ebe04fef1c1d134ac249bd33f0c80dc8d32766e498177ea37d8c5ba47eed",
+  "runtime/schemas/decision-protocol-event.schema.json": "b292698f125b8cba393dc6f1e312de524a6204d0c3ced1850d880670698c140f",
+  "runtime/schemas/decision-assessment-event.schema.json": "1eea6c0e78a531ad833e9ce679f4bd8cf22c1df74e2ad487fdd3125f00d822ea",
+  "runtime/schemas/ingress-sanitization-record.schema.json": "388736c06a4a2023378c1a7934faaa32af52571b815cfe34e7ef89b0440dd61f",
+  "runtime/schemas/egress-sanitization-record.schema.json": "f2138aef1c3a53df397fab4720cf875b27f4a0f49759221737cb6fb2fb7811fe"
  }
 }
